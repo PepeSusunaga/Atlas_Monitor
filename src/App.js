@@ -28,7 +28,7 @@ class App extends Component {
   }
 
   addData = () => {
-    fetch("http://10.104.105.132").then((respuesta)=> {
+    fetch("http://10.104.104.50").then((respuesta)=> {
       respuesta.text().then((textofinal)=>{
         this.setState({
           myData: {
