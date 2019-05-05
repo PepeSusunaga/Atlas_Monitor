@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import { Line } from "react-chartjs-2";
 import logo from "./logo.svg";
 import "./App.css";
-import Button from "./components/button";
+//import Button from "./components/button";
 
 class App extends Component {
   handleTaskChange = event => this.setState({ newTask: event.target.value });
@@ -63,7 +63,6 @@ componentDidMount=()=>{
 
         <h2 className="test-label">{this.state.newTask}</h2>
         <Line data={this.state.myData} />
-        <Button addData={this.addData} text="Actualizar Datos" />
       </div>
     );
   }
