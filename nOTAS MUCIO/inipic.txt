@@ -1,0 +1,216 @@
+list p=18f2550
+    #include <p18f2550.inc>
+    ; CONFIG1L
+  CONFIG  PLLDIV = 5            ; PLL Prescaler Selection bits (Divide by 5 (20 MHz oscillator input))
+  CONFIG  CPUDIV = OSC1_PLL2    ; System Clock Postscaler Selection bits ([Primary Oscillator Src: /1][96 MHz PLL Src: /2])
+  CONFIG  USBDIV = 1            ; USB Clock Selection bit (used in Full-Speed USB mode only; UCFG:FSEN = 1) (USB clock source comes directly from the primary oscillator block with no postscale)
+; CONFIG1H
+  CONFIG  FOSC = HS             ; Oscillator Selection bits (HS oscillator (HS))
+  CONFIG  FCMEN = OFF           ; Fail-Safe Clock Monitor Enable bit (Fail-Safe Clock Monitor disabled)
+  CONFIG  IESO = OFF            ; Internal/External Oscillator Switchover bit (Oscillator Switchover mode disabled)
+; CONFIG2L
+  CONFIG  PWRT = ON             ; Power-up Timer Enable bit (PWRT enabled)
+  CONFIG  BOR = OFF             ; Brown-out Reset Enable bits (Brown-out Reset disabled in hardware and software)
+  CONFIG  BORV = 3              ; Brown-out Reset Voltage bits (Minimum setting 2.05V)
+  CONFIG  VREGEN = OFF          ; USB Voltage Regulator Enable bit (USB voltage regulator disabled)
+; CONFIG2H
+  CONFIG  WDT = OFF             ; Watchdog Timer Enable bit (WDT disabled (control is placed on the SWDTEN bit))
+  CONFIG  WDTPS = 32768         ; Watchdog Timer Postscale Select bits (1:32768)
+; CONFIG3H
+  CONFIG  CCP2MX = ON           ; CCP2 MUX bit (CCP2 input/output is multiplexed with RC1)
+  CONFIG  PBADEN = OFF           ; PORTB A/D Enable bit (PORTB<4:0> pins are configured as analog input channels on Reset)
+  CONFIG  LPT1OSC = OFF         ; Low-Power Timer 1 Oscillator Enable bit (Timer1 configured for higher power operation)
+  CONFIG  MCLRE = ON            ; MCLR Pin Enable bit (MCLR pin enabled; RE3 input pin disabled)
+; CONFIG4L
+  CONFIG  STVREN = ON           ; Stack Full/Underflow Reset Enable bit (Stack full/underflow will cause Reset)
+  CONFIG  LVP = OFF             ; Single-Supply ICSP Enable bit (Single-Supply ICSP disabled)
+  CONFIG  XINST = OFF           ; Extended Instruction Set Enable bit (Instruction set extension and Indexed Addressing mode disabled (Legacy mode))
+; CONFIG5L
+  CONFIG  CP0 = OFF             ; Code Protection bit (Block 0 (000800-001FFFh) is not code-protected)
+  CONFIG  CP1 = OFF             ; Code Protection bit (Block 1 (002000-003FFFh) is not code-protected)
+  CONFIG  CP2 = OFF             ; Code Protection bit (Block 2 (004000-005FFFh) is not code-protected)
+  CONFIG  CP3 = OFF             ; Code Protection bit (Block 3 (006000-007FFFh) is not code-protected)
+; CONFIG5H
+  CONFIG  CPB = OFF             ; Boot Block Code Protection bit (Boot block (000000-0007FFh) is not code-protected)
+  CONFIG  CPD = OFF             ; Data EEPROM Code Protection bit (Data EEPROM is not code-protected)
+; CONFIG6L
+  CONFIG  WRT0 = OFF            ; Write Protection bit (Block 0 (000800-001FFFh) is not write-protected)
+  CONFIG  WRT1 = OFF            ; Write Protection bit (Block 1 (002000-003FFFh) is not write-protected)
+  CONFIG  WRT2 = OFF            ; Write Protection bit (Block 2 (004000-005FFFh) is not write-protected)
+  CONFIG  WRT3 = OFF            ; Write Protection bit (Block 3 (006000-007FFFh) is not write-protected)
+; CONFIG6H
+  CONFIG  WRTC = OFF            ; Configuration Register Write Protection bit (Configuration registers (300000-3000FFh) are not write-protected)
+  CONFIG  WRTB = OFF            ; Boot Block Write Protection bit (Boot block (000000-0007FFh) is not write-protected)
+  CONFIG  WRTD = OFF            ; Data EEPROM Write Protection bit (Data EEPROM is not write-protected)
+; CONFIG7L
+  CONFIG  EBTR0 = OFF           ; Table Read Protection bit (Block 0 (000800-001FFFh) is not protected from table reads executed in other blocks)
+  CONFIG  EBTR1 = OFF           ; Table Read Protection bit (Block 1 (002000-003FFFh) is not protected from table reads executed in other blocks)
+  CONFIG  EBTR2 = OFF           ; Table Read Protection bit (Block 2 (004000-005FFFh) is not protected from table reads executed in other blocks)
+  CONFIG  EBTR3 = OFF           ; Table Read Protection bit (Block 3 (006000-007FFFh) is not protected from table reads executed in other blocks)
+; CONFIG7H
+  CONFIG  EBTRB = OFF           ; Boot Block Table Read Protection bit (Boot block (000000-0007FFh) is not protected from table reads executed in other blocks)
+  
+  ;DECLARACION DE CONSTANTES
+ARTICULACIONES	EQU .4 ;ARTICULACIONES=NUMERO DE EXTREMIDADES 
+  
+  ;DELCARACION DE VARIABLES
+CBLOCK 0X20
+  RESP_W
+  RESP_STATUS
+  RESP_PCLATH
+  CONT1;ESCALA 1:.1ms
+  CONT2;ESCALA 1:100ms
+  CONT3;ESCALA 1:1s
+  VUELTA
+  AD_RESUL
+  TEMPORAL
+  ENVIO
+ENDC
+  
+  ORG 0X00
+VEC_RESET  CLRF PCLATH
+    GOTO PROG_PRIN
+    
+    ORG 0X18
+VEC_INT MOVWF RESP_W;MUEVE EL VALOR DE W A LA VARIABLE
+	MOVF STATUS,W;MUEVE EL VALOR DEL STATUS A W
+	MOVWF RESP_STATUS;MUEVE EL VALOR DE W A LA VARIABLE
+	CLRF STATUS;BORRA EL CONTENIDO DEL STATUS
+	MOVF PCLATH,W;MUEVE EL VALOR DEL PCLATH A W
+	MOVWF RESP_PCLATH;MUEVE EL VALOR DE W A LA VARIABLE
+	CLRF PCLATH;BORRA EL CONTENIDO DEL PCLATH
+	BTFSC INTCON,TMR0IF;PRUEBA EL BIT Y SALTA SI ESTA EN 0
+	CALL INT_TMR0;LLAMA A LA SUBRUTINA DE INTERRUPCIÓN POR TIEMPO
+SAL_INT	MOVF RESP_PCLATH,W;MUEVE EL VALOR DE LA VARIABLE A W
+	MOVWF PCLATH;MUEVE EL VALOR DE W AL PCLATH
+	MOVF RESP_STATUS,W;MUEVE EL VALOR DE LA VARIABLE A W
+	MOVWF STATUS;MUEVE EL VALOR DE W AL STATUS
+	MOVF RESP_W,W;MUEVE EL VALOR DE LA VARIABLE A W
+	RETFIE;REGRESA AL PUNTO DONDE FUE LLAMADO
+	
+INT_TMR0 INCF CONT1,F;cuenta cada .1ms
+	MOVLW .100;
+	SUBWF CONT1,W
+	BTFSS STATUS,Z
+	GOTO SAL_TMR0
+	CLRF CONT1
+	INCF CONT2,F;cuenta cada 100ms
+	MOVLW .100
+	SUBWF CONT2,W
+	BTFSS STATUS,Z
+	GOTO SAL_TMR0
+	CLRF CONT1
+	CLRF CONT2
+	INCF CONT3,F;cuenta cada 1s
+SAL_TMR0 MOVLW .225;REGRESA EL VALOR DEL TMR0
+	MOVWF TMR0 
+	BCF INTCON,TMR0IF;
+	RETURN	
+		
+PROG_PRIN 
+CALL PROG_INI
+RESET_VUELTA MOVLW ARTICULACIONES
+    MOVWF VUELTA
+LOOP CALL CHANNEL
+    CALL LEER_POT
+    CALL ENVIAR_POT
+    DECFSZ VUELTA,F
+    GOTO LOOP
+    GOTO RESET_VUELTA
+    
+;SUBRRUTINA DE SELECCIÓN DE CANAL Y ENVÍO DEL MISMO    
+CHANNEL
+    MOVLW .4
+    SUBWF VUELTA,W
+    BTFSC STATUS,Z
+    GOTO ENV_CHA0
+    MOVLW .3
+    SUBWF VUELTA,W
+    BTFSC STATUS,Z
+    GOTO ENV_CHA1
+    MOVLW .2
+    SUBWF VUELTA,W
+    BTFSC STATUS,Z
+    GOTO ENV_CHA2
+    MOVLW .1
+    SUBWF VUELTA,W
+    BTFSC STATUS,Z
+    GOTO ENV_CHA3
+    GOTO CHANNEL
+ENV_CHA3  
+    MOVLW B'00001101'
+    MOVWF ADCON0
+    CALL SW_TIME
+    MOVLW .4
+    CALL SEND
+    GOTO SAL_SELECT
+ENV_CHA2
+    MOVLW B'00001001'
+    MOVWF ADCON0
+    CALL SW_TIME
+    MOVLW .3
+    CALL SEND
+    GOTO SAL_SELECT
+ENV_CHA1
+    MOVLW B'00000101'
+    MOVWF ADCON0
+    CALL SW_TIME
+    MOVLW .2
+    CALL SEND
+    GOTO SAL_SELECT
+ENV_CHA0
+    MOVLW B'00000001'
+    MOVWF ADCON0
+    CALL SW_TIME
+    MOVLW .1
+    CALL SEND
+    GOTO SAL_SELECT
+SAL_SELECT    
+    RETURN
+
+LEER_POT
+    BSF ADCON0,GO_DONE
+AB  BTFSC ADCON0,GO_DONE
+    GOTO AB
+    MOVLW .0
+    SUBWF ADRESH,W
+    BTFSS STATUS,Z
+    GOTO PASS
+    MOVF ADRESL,W
+    MOVWF AD_RESUL
+    GOTO SAL_LEERPOT
+PASS MOVLW 0XFF
+    MOVWF AD_RESUL
+SAL_LEERPOT RETURN
+    
+ENVIAR_POT
+    MOVF AD_RESUL,W
+    CALL SEND
+    RETURN
+
+SW_TIME
+    CALL RESET_CLK
+AC  MOVLW .2
+    SUBWF CONT2
+    BTFSS STATUS,Z
+    GOTO AC
+    RETURN
+    
+RESET_CLK CLRF CONT1
+    CLRF CONT2
+    CLRF CONT3
+    RETURN
+
+SEND MOVWF ENVIO
+    BSF TXSTA,TXEN
+GG  BTFSS PIR1,TXIF
+    GOTO GG
+    MOVF ENVIO,W
+    MOVWF TXREG
+    RETURN
+    
+
+    
+    
+#include "ini_pic.inc"	
+END 
