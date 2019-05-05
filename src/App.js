@@ -11,51 +11,59 @@ class App extends Component {
     super(props);
 
     this.state = {
-      newTask: "sdfasdf",
+
       myData: {
-        labels: ["1", "2", "3", "4", "5", "6"],
+        labels: [],
         datasets: [
           {
             label: "Atlas",
-            data: [1, 3, 22, 9, 12, 11]
+            backgroundColor: 'rgba(0,0,0,0)',
+            borderColor: "#862d59",
+            data: []
           }
         ]
-      }
+      },
+
     };
   }
 
   addData = () => {
-    this.setState({
-      myData: {
-        labels: [...this.state.myData.labels, Date.now()],
-        datasets: [
-          {
-            ...this.state.myData.datasets[0],
-            data: [...this.state.myData.datasets[0].data, Math.random() * 30]
+    fetch("http://10.104.105.132").then((respuesta)=> {
+      respuesta.text().then((textofinal)=>{
+        this.setState({
+          myData: {
+            labels: [...this.state.myData.labels, new Date(Date.now()).getHours() + ":" + new Date(Date.now()).getMinutes() + ":" +new Date(Date.now()).getSeconds()],
+            datasets: [
+              {
+                ...this.state.myData.datasets[0],
+                data: [...this.state.myData.datasets[0].data, Number(textofinal)]
+              }
+            ]
           }
-        ]
-      }
-    });
+        });
+      })
+    })
+
   };
 
+componentDidMount=()=>{
+  setInterval(this.addData, 1000)
+}
   render() {
     return (
       <div className="container">
         <h1 className="title">
-          Hello world{" "}
+          Atlas Monitor Body Assistant{" "}
           <span aria-label="emoji" role="img">
-            🔥
+            ⚡
           </span>
         </h1>
-        <input
-          value={this.state.newTask}
-          onChange={this.handleTaskChange}
-          type="text"
-          className="new-task"
-        />
+        <h2 className="tituloGrafica">
+          Gráfica de Artritis{" "}</h2>
+
         <h2 className="test-label">{this.state.newTask}</h2>
         <Line data={this.state.myData} />
-        <Button addData={this.addData} text="Este es mi primer boton" />
+        <Button addData={this.addData} text="Actualizar Datos" />
       </div>
     );
   }

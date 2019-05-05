@@ -2,7 +2,11 @@ import React, { Component } from "react";
 
 class Button extends Component {
   render() {
-    return <button onClick={this.props.addData}>{this.props.text}</button>;
+    return (
+      <div className="button-container">
+      <button onClick={this.props.addData}>{this.props.text}</button>
+      </div>
+    )
   }
 }
 
