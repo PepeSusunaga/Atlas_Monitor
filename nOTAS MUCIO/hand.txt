@@ -1,0 +1,595 @@
+;   3/05/2019
+    ;   Mucio Gómez Vieyra
+    ;   Librería para configurar registros del pic18f2550,4550,4555,2455
+    ;   --------------------------------------------------------------------
+    ; se llama a la libreria con la instrucción call PROG_INI
+    ; se ejecutarán las instrucciones a continuación para configurar 
+    ; las funciones que deberá de tener el microcontrolador 
+    ; la inicialización de variables y puertos depende del programa
+    ; a realizar, por lo que el usuario es responsable de configurar
+    ; ese apartado considerando los puertos y variables que su programa 
+    ; fuente esta utilizando.
+    ;	LOS APARTADOS SON LOS SIGUIENTES:
+    ;	    1	configuracion del modulo analogo a digital
+    ;	    2	configruacion de las interrupciones
+    ;	    3	configuracion del modulo timer 0
+    ;	    4	configuracion del modulo USART 
+    ;	    5	configuracion de puertos
+    ;	    6	inicializacion de cariables y puertos
+
+    
+PROG_INI
+    
+    
+;\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+;1 CONVERSOR ANALOGO A DIGITAL
+;\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
+;el modulo tiene 5 registros 
+    ;	registro alto de resultado  ADRESH
+    ;	registro bajo de resultado  ADRESL
+    ;	registro de control 0	    ADCON0
+    ;	registro de control 1	    ADCON1
+    ;	registro de control 2	    ADCON2
+
+;ADCON0	    
+;bit 7-6 Unimplemented: Read as ?0?
+;bit 5-2 CHS3:CHS0: Analog Channel Select bits
+;	0000 = Channel 0 (AN0)
+;	0001 = Channel 1 (AN1)
+;	0010 = Channel 2 (AN2)
+;	0011 = Channel 3 (AN3)
+;	0100 = Channel 4 (AN4)
+;	0101 = Channel 5 (AN5)(no disponible en version de 28pines)
+;	0110 = Channel 6 (AN6)(no disponible en version de 28pines)
+;	0111 = Channel 7 (AN7)(no disponible en version de 28pines)
+;	1000 = Channel 8 (AN8)
+;	1001 = Channel 9 (AN9)
+;	1010 = Channel 10 (AN10)
+;	1011 = Channel 11 (AN11)
+;	1100 = Channel 12 (AN12)
+;	1101 = Unimplemented(2)
+;	1110 = Unimplemented(2)
+;	1111 = Unimplemented(2)
+;bit 1 GO/DONE: A/D Conversion Status bit
+;When ADON = 1:
+;	1 = A/D conversion in progress
+;	0 = A/D Idle
+;bit 0 ADON: A/D On bit
+;	1 = A/D converter module is enabled
+;	0 = A/D converter module is disabled
+    movlw b'00000001';carga w con la litera
+    movwf ADCON0     ;mueve la literal al registro
+
+;ADCON1
+;bit 7-6 Unimplemented: Read as ?0?
+;bit 5 VCFG0: Voltage Reference Configuration bit (VREF- source)
+;	1 = VREF- (AN2)
+;	0 = VSS
+;bit 4 VCFG0: Voltage Reference Configuration bit (VREF+ source)
+;	1 = VREF+ (AN3)
+;	0 = VDD
+;bit 3-0 PCFG3:PCFG0: A/D Port Configuration Control bits:     
+;   PCFG3:PCFG0
+;       AN12--------------------AN0
+;   0000 A A A A A A A A A A A A A
+;   0001 A A A A A A A A A A A A A
+;   0010 A A A A A A A A A A A A A
+;   0011 D A A A A A A A A A A A A
+;   0100 D D A A A A A A A A A A A
+;   0101 D D D A A A A A A A A A A
+;   0110 D D D D A A A A A A A A A
+;   0111 D D D D D A A A A A A A A
+;   1000 D D D D D D A A A A A A A
+;   1001 D D D D D D D A A A A A A
+;   1010 D D D D D D D D A A A A A
+;   1011 D D D D D D D D D A A A A
+;   1100 D D D D D D D D D D A A A
+;   1101 D D D D D D D D D D D A A
+;   1110 D D D D D D D D D D D D A
+;   1111 D D D D D D D D D D D D D   
+;   d=digital a=analog
+    movlw b'00001011';carga w con la literal
+    movwf ADCON1     ;mueve la literal al registro
+    
+;ADCON2
+;bit 7 ADFM: A/D Result Format Select bit
+;	1 = Right justified
+;	0 = Left justified
+;bit 6 Unimplemented: Read as ?0?
+;bit 5-3 ACQT2:ACQT0: A/D Acquisition Time Select bits
+;	111 = 20 TAD
+;	110 = 16 TAD
+;	101 = 12 TAD
+;	100 = 8 TAD
+;	011 = 6 TAD
+;	010 = 4 TAD
+;	001 = 2 TAD
+;	000 = 0 TAD(1)
+;bit 2-0 ADCS2:ADCS0: A/D Conversion Clock Select bits
+;   	111 = FRC (clock derived from A/D RC oscillator)(1)
+;	110 = FOSC/64
+;	101 = FOSC/16
+;	100 = FOSC/4
+;	011 = FRC (clock derived from A/D RC oscillator)(1)
+;	010 = FOSC/32
+;	001 = FOSC/8
+;	000 = FOSC/2 
+    bsf ADCON2,ADFM;pon en estado alto el bit
+    
+;\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/    
+;2 CONFIGURACION DE LAS INTERRUPCIONES 
+;\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+;para su uso hay 10 registros
+    ;RCON
+    ;INTCON
+    ;control y banderas de interrupcion2    INTCON2
+    ;control y banderas de interrupcion3    INTCON3
+    ;banderas de perifericos		    PIR1,PIR2
+    ;interrupciones de perifericos	    PIE1,PIE2
+    ;IPR1,IPR2
+    
+;RCON
+;bit 7 IPEN: Interrupt Priority Enable bit
+;	1 = Enable priority levels on interrupts
+;	0 = Disable priority levels on interrupts (PIC16CXXX Compatibility mode)
+;bit 6 SBOREN: BOR Software Enable bit(1)
+;   If BOREN1:BOREN0 = 01:
+;	1 = BOR is enabled
+;	0 = BOR is disabled
+;   If BOREN1:BOREN0 = 00, 10 or 11:
+;	Bit is disabled and read as ?0?.
+;bit 5 Unimplemented: Read as ?0?
+;bit 4 RI: RESET Instruction Flag bit
+;	1 = The RESET instruction was not executed (set by firmware only)
+;	0 = The RESET instruction was executed causing a device Reset (must be set in software after a
+;		Brown-out Reset occurs)
+;bit 3 TO: Watchdog Time-out Flag bit
+;	1 = Set by power-up, CLRWDT instruction or SLEEP instruction
+;	0 = A WDT time-out occurred
+;bit 2 PD: Power-Down Detection Flag bit
+;	1 = Set by power-up or by the CLRWDT instruction
+;	0 = Set by execution of the SLEEP instruction
+;bit 1 POR: Power-on Reset Status bit(2)
+;	1 = A Power-on Reset has not occurred (set by firmware only)
+;	0 = A Power-on Reset occurred (must be set in software after a Power-on Reset occurs)
+;bit 0 BOR: Brown-out Reset Status bit
+;	1 = A Brown-out Reset has not occurred (set by firmware only)
+;	0 = A Brown-out Reset occurred (must be set in software after a Brown-out Reset occurs) 
+    BCF RCON,IPEN;configuracion de interrucipciones 
+    
+;INTCON
+;bit 7 GIE/GIEH: Global Interrupt Enable bit
+;   When IPEN = 0:
+;	1 = Enables all unmasked interrupts
+;	0 = Disables all interrupts
+;   When IPEN = 1:
+;	1 = Enables all high priority interrupts
+;	0 = Disables all high priority interrupts
+;bit 6 PEIE/GIEL: Peripheral Interrupt Enable bit
+;   When IPEN = 0:
+;	1 = Enables all unmasked peripheral interrupts
+;	0 = Disables all peripheral interrupts
+;   When IPEN = 1:
+;	1 = Enables all low priority peripheral interrupts
+;	0 = Disables all low priority peripheral interrupts
+;bit 5 TMR0IE: TMR0 Overflow Interrupt Enable bit
+;	1 = Enables the TMR0 overflow interrupt
+;	0 = Disables the TMR0 overflow interrupt
+;bit 4 INT0IE: INT0 External Interrupt Enable bit
+;	1 = Enables the INT0 external interrupt
+;	0 = Disables the INT0 external interrupt
+;bit 3 RBIE: RB Port Change Interrupt Enable bit
+;	1 = Enables the RB port change interrupt
+;	0 = Disables the RB port change interrupt
+;bit 2 TMR0IF: TMR0 Overflow Interrupt Flag bit
+;	1 = TMR0 register has overflowed (must be cleared in software)
+;	0 = TMR0 register did not overflow
+;bit 1 INT0IF: INT0 External Interrupt Flag bit
+;	1 = The INT0 external interrupt occurred (must be cleared in software)
+;	0 = The INT0 external interrupt did not occur
+;bit 0 RBIF: RB Port Change Interrupt Flag bit(1)
+;	1 = At least one of the RB7:RB4 pins changed state (must be cleared in software)
+;	0 = None of the RB7:RB4 pins have changed state
+    MOVLW B'10100000'
+    MOVWF INTCON
+    
+;INTCON2
+;bit 7 RBPU: PORTB Pull-up Enable bit
+;	1 = All PORTB pull-ups are disabled
+;	0 = PORTB pull-ups are enabled by individual port latch values
+;bit 6 INTEDG0: External Interrupt 0 Edge Select bit
+;	1 = Interrupt on rising edge
+;	0 = Interrupt on falling edge
+;bit 5 INTEDG1: External Interrupt 1 Edge Select bit
+;	1 = Interrupt on rising edge
+;	0 = Interrupt on falling edge
+;bit 4 INTEDG2: External Interrupt 2 Edge Select bit
+;	1 = Interrupt on rising edge
+;	0 = Interrupt on falling edge
+;bit 3 Unimplemented: Read as ?0?
+;bit 2 TMR0IP: TMR0 Overflow Interrupt Priority bit
+;	1 = High priority
+;	0 = Low priority
+;bit 1 Unimplemented: Read as ?0?
+;bit 0 RBIP: RB Port Change Interrupt Priority bit
+;	1 = High priority
+;	0 = Low priority    
+    MOVLW B'10000000'
+    MOVWF INTCON2
+    
+;INTCON3
+;bit 7 INT2IP: INT2 External Interrupt Priority bit
+;	1 = High priority
+;	0 = Low priority
+;bit 6 INT1IP: INT1 External Interrupt Priority bit
+;	1 = High priority
+;	0 = Low priority
+;bit 5 Unimplemented: Read as ?0?
+;bit 4 INT2IE: INT2 External Interrupt Enable bit
+;	1 = Enables the INT2 external interrupt
+;	0 = Disables the INT2 external interrupt
+;bit 3 INT1IE: INT1 External Interrupt Enable bit
+;	1 = Enables the INT1 external interrupt
+;	0 = Disables the INT1 external interrupt
+;bit 2 Unimplemented: Read as ?0?
+;bit 1 INT2IF: INT2 External Interrupt Flag bit
+;	1 = The INT2 external interrupt occurred (must be cleared in software)
+;	0 = The INT2 external interrupt did not occur
+;bit 0 INT1IF: INT1 External Interrupt Flag bit
+;	1 = The INT1 external interrupt occurred (must be cleared in software)
+;	0 = The INT1 external interrupt did not occur
+    CLRF INTCON3
+
+;PIR1
+;bit 7 SPPIF: Streaming Parallel Port Read/Write Interrupt Flag bit(1)
+;	1 = A read or a write operation has taken place (must be cleared in software)
+;	0 = No read or write has occurred
+;bit 6 ADIF: A/D Converter Interrupt Flag bit
+;	1 = An A/D conversion completed (must be cleared in software)
+;	0 = The A/D conversion is not complete
+;bit 5 RCIF: EUSART Receive Interrupt Flag bit
+;	1 = The EUSART receive buffer, RCREG, is full (cleared when RCREG is read)
+;	0 = The EUSART receive buffer is empty
+;bit 4 TXIF: EUSART Transmit Interrupt Flag bit
+;	1 = The EUSART transmit buffer, TXREG, is empty (cleared when TXREG is written)
+;	0 = The EUSART transmit buffer is full
+;bit 3 SSPIF: Master Synchronous Serial Port Interrupt Flag bit
+;	1 = The transmission/reception is complete (must be cleared in software)
+;	0 = Waiting to transmit/receive
+;bit 2 CCP1IF: CCP1 Interrupt Flag bit
+;   Capture mode:
+;	1 = A TMR1 register capture occurred (must be cleared in software)
+;	0 = No TMR1 register capture occurred
+;   Compare mode:
+;	1 = A TMR1 register compare match occurred (must be cleared in software)
+;	0 = No TMR1 register compare match occurred
+;   PWM mode:
+;	Unused in this mode.
+;bit 1 TMR2IF: TMR2 to PR2 Match Interrupt Flag bit
+;	1 = TMR2 to PR2 match occurred (must be cleared in software)
+;	0 = No TMR2 to PR2 match occurred
+;bit 0 TMR1IF: TMR1 Overflow Interrupt Flag bit
+;	1 = TMR1 register overflowed (must be cleared in software)
+;	0 = TMR1 register did not overflow
+    
+;PIR2
+;bit 7 OSCFIF: Oscillator Fail Interrupt Flag bit
+;	1 = System oscillator failed, clock input has changed to INTOSC (must be cleared in software)
+;	0 = System clock operating
+;bit 6 CMIF: Comparator Interrupt Flag bit
+;	1 = Comparator input has changed (must be cleared in software)
+;	0 = Comparator input has not changed
+;bit 5 USBIF: USB Interrupt Flag bit
+;	1 = USB has requested an interrupt (must be cleared in software)
+;	0 = No USB interrupt request
+;bit 4 EEIF: Data EEPROM/Flash Write Operation Interrupt Flag bit
+;	1 = The write operation is complete (must be cleared in software)
+;	0 = The write operation is not complete or has not been started
+;bit 3 BCLIF: Bus Collision Interrupt Flag bit
+;	1 = A bus collision has occurred (must be cleared in software)
+;	0 = No bus collision occurred
+;bit 2 HLVDIF: High/Low-Voltage Detect Interrupt Flag bit
+;	1 = A high/low-voltage condition occurred (must be cleared in software)
+;	0 = No high/low-voltage event has occurred
+;bit 1 TMR3IF: TMR3 Overflow Interrupt Flag bit
+;	1 = TMR3 register overflowed (must be cleared in software)
+;	0 = TMR3 register did not overflow
+;bit 0 CCP2IF: CCP2 Interrupt Flag bit
+;   Capture mode:
+;	1 = A TMR1 or TMR3 register capture occurred (must be cleared in software)
+;	0 = No TMR1 or TMR3 register capture occurred
+;   Compare mode:
+;	1 = A TMR1 or TMR3 register compare match occurred (must be cleared in software)
+;	0 = No TMR1 or TMR3 register compare match occurred
+;   PWM mode:
+;	Unused in this mode.    
+   
+    
+;PIE1
+;bit 7 SPPIE: Streaming Parallel Port Read/Write Interrupt Enable bit(1)
+;	1 = Enables the SPP read/write interrupt
+;	0 = Disables the SPP read/write interrupt
+;bit 6 ADIE: A/D Converter Interrupt Enable bit
+;	1 = Enables the A/D interrupt
+;	0 = Disables the A/D interrupt
+;bit 5 RCIE: EUSART Receive Interrupt Enable bit
+;	1 = Enables the EUSART receive interrupt
+;	0 = Disables the EUSART receive interrupt
+;bit 4 TXIE: EUSART Transmit Interrupt Enable bit
+;	1 = Enables the EUSART transmit interrupt
+;	0 = Disables the EUSART transmit interrupt
+;bit 3 SSPIE: Master Synchronous Serial Port Interrupt Enable bit
+;	1 = Enables the MSSP interrupt
+;	0 = Disables the MSSP interrupt
+;bit 2 CCP1IE: CCP1 Interrupt Enable bit
+;	1 = Enables the CCP1 interrupt
+;	0 = Disables the CCP1 interrupt
+;bit 1 TMR2IE: TMR2 to PR2 Match Interrupt Enable bit
+;	1 = Enables the TMR2 to PR2 match interrupt
+;	0 = Disables the TMR2 to PR2 match interrupt
+;bit 0 TMR1IE: TMR1 Overflow Interrupt Enable bit
+;	1 = Enables the TMR1 overflow interrupt
+;	0 = Disables the TMR1 overflow interrupt
+    MOVLW B'00110000'
+    MOVWF PIE1
+
+;PIE2    
+;bit 7 OSCFIE: Oscillator Fail Interrupt Enable bit
+;	1 = Enabled
+;	0 = Disabled
+;bit 6 CMIE: Comparator Interrupt Enable bit
+;	1 = Enabled
+;	0 = Disabled
+;bit 5 USBIE: USB Interrupt Enable bit
+;	1 = Enabled
+;	0 = Disabled
+;bit 4 EEIE: Data EEPROM/Flash Write Operation Interrupt Enable bit
+;	1 = Enabled
+;	0 = Disabled
+;bit 3 BCLIE: Bus Collision Interrupt Enable bit
+;	1 = Enabled
+;	0 = Disabled
+;bit 2 HLVDIE: High/Low-Voltage Detect Interrupt Enable bit
+;	1 = Enabled
+;	0 = Disabled
+;bit 1 TMR3IE: TMR3 Overflow Interrupt Enable bit
+;	1 = Enabled
+;	0 = Disabled
+;bit 0 CCP2IE: CCP2 Interrupt Enable bit
+;	1 = Enabled
+;	0 = Disabled
+    
+;IPR1    
+;bit 7 SPPIP: Streaming Parallel Port Read/Write Interrupt Priority bit(1)
+;	1 = High priority
+;	0 = Low priority
+;bit 6 ADIP: A/D Converter Interrupt Priority bit
+;	1 = High priority
+;	0 = Low priority
+;bit 5 RCIP: EUSART Receive Interrupt Priority bit
+;	1 = High priority
+;	0 = Low priority
+;bit 4 TXIP: EUSART Transmit Interrupt Priority bit
+;	1 = High priority
+;	0 = Low priority
+;bit 3 SSPIP: Master Synchronous Serial Port Interrupt Priority bit
+;	1 = High priority
+;	0 = Low priority
+;bit 2 CCP1IP: CCP1 Interrupt Priority bit
+;	1 = High priority
+;	0 = Low priority
+;bit 1 TMR2IP: TMR2 to PR2 Match Interrupt Priority bit
+;	1 = High priority
+;	0 = Low priority
+;bit 0 TMR1IP: TMR1 Overflow Interrupt Priority bit
+;	1 = High priority
+;	0 = Low priority
+    
+;IPR2
+;bit 7 OSCFIP: Oscillator Fail Interrupt Priority bit
+;	1 = High priority
+;	0 = Low priority
+;bit 6 CMIP: Comparator Interrupt Priority bit
+;	1 = High priority
+;	0 = Low priority
+;bit 5 USBIP: USB Interrupt Priority bit
+;	1 = High priority
+;	0 = Low priority
+;bit 4 EEIP: Data EEPROM/Flash Write Operation Interrupt Priority bit
+;	1 = High priority
+;	0 = Low priority
+;bit 3 BCLIP: Bus Collision Interrupt Priority bit
+;	1 = High priority
+;	0 = Low priority
+;bit 2 HLVDIP: High/Low-Voltage Detect Interrupt Priority bit
+;	1 = High priority
+;	0 = Low priority
+;bit 1 TMR3IP: TMR3 Overflow Interrupt Priority bit
+;	1 = High priority
+;	0 = Low priority
+;bit 0 CCP2IP: CCP2 Interrupt Priority bit
+;	1 = High priority
+;	0 = Low priority
+     
+
+    
+;\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/    
+;3	CONFIGURACION DE LAS TIMER 0
+;\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+;T0CON
+;bit 7 TMR0ON: Timer0 On/Off Control bit
+;	1 = Enables Timer0
+;	0 = Stops Timer0
+;bit 6 T08BIT: Timer0 8-Bit/16-Bit Control bit
+;	1 = Timer0 is configured as an 8-bit timer/counter
+;	0 = Timer0 is configured as a 16-bit timer/counter
+;bit 5 T0CS: Timer0 Clock Source Select bit
+;	1 = Transition on T0CKI pin
+;	0 = Internal instruction cycle clock (CLKO)
+;bit 4 T0SE: Timer0 Source Edge Select bit
+;	1 = Increment on high-to-low transition on T0CKI pin
+;	0 = Increment on low-to-high transition on T0CKI pin
+;bit 3 PSA: Timer0 Prescaler Assignment bit
+;	1 = TImer0 prescaler is NOT assigned. Timer0 clock input bypasses prescaler.
+;	0 = Timer0 prescaler is assigned. Timer0 clock input comes from prescaler output.
+;bit 2-0 T0PS2:T0PS0: Timer0 Prescaler Select bits
+;	111 = 1:256 Prescale value
+;	110 = 1:128 Prescale value
+;	101 = 1:64 Prescale value
+;	100 = 1:32 Prescale value
+;	011 = 1:16 Prescale value
+;	010 = 1:8 Prescale value
+;	001 = 1:4 Prescale value
+;	000 = 1:2 Prescale value
+    MOVLW B'11010011'
+    MOVWF T0CON
+    MOVLW .225;set de timer cero
+    MOVWF TMR0
+
+;\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/    
+;4	CONFIGURACION DE MODULO USART
+;\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/  
+    
+    movlw B'10111011'
+    movwf TRISC
+    BCF TXSTA,TX9
+    BCF TXSTA,BRGH
+    BSF RCSTA,SPEN
+    	
+;TXSTA
+;bit 7 CSRC: Clock Source Select bit
+;   Asynchronous mode:
+;	Don?t care.
+;   Synchronous mode:
+;	1 = Master mode (clock generated internally from BRG)
+;	0 = Slave mode (clock from external source)
+;bit 6 TX9: 9-Bit Transmit Enable bit
+;	1 = Selects 9-bit transmission
+;	0 = Selects 8-bit transmission
+;bit 5 TXEN: Transmit Enable bit(1)
+;	1 = Transmit enabled
+;	0 = Transmit disabled
+;bit 4 SYNC: EUSART Mode Select bit
+;	1 = Synchronous mode
+;	0 = Asynchronous mode
+;bit 3 SENDB: Send Break Character bit
+;   Asynchronous mode:
+;	1 = Send Sync Break on next transmission (cleared by hardware upon completion)
+;	0 = Sync Break transmission completed
+;   Synchronous mode:
+;	Don?t care.
+;bit 2 BRGH: High Baud Rate Select bit
+;   Asynchronous mode:
+;	1 = High speed
+;	0 = Low speed
+;   Synchronous mode:
+;	Unused in this mode.
+;bit 1 TRMT: Transmit Shift Register Status bit
+;	1 = TSR empty
+;	0 = TSR full
+;bit 0 TX9D: 9th bit of Transmit Data
+;	Can be address/data bit or a parity bit.    
+;    MOVLW B'00101000';CONFIGURACION DE TX Y RX
+;    MOVWF TXSTA
+    
+;RCSTA
+;bit 7 SPEN: Serial Port Enable bit
+;	1 = Serial port enabled (configures RX/DT and TX/CK pins as serial port pins)
+;	0 = Serial port disabled (held in Reset)
+;bit 6 RX9: 9-Bit Receive Enable bit
+;	1 = Selects 9-bit reception
+;	0 = Selects 8-bit reception
+;bit 5 SREN: Single Receive Enable bit
+;   Asynchronous mode:
+;	Don?t care.
+;   Synchronous mode ? Master:
+;	1 = Enables single receive
+;	0 = Disables single receive
+;	This bit is cleared after reception is complete.
+;   Synchronous mode ? Slave:
+;	Don?t care.
+;bit 4 CREN: Continuous Receive Enable bit
+;   Asynchronous mode:
+;	1 = Enables receiver
+;	0 = Disables receiver
+;   Synchronous mode:
+;	1 = Enables continuous receive until enable bit CREN is cleared (CREN overrides SREN)
+;	0 = Disables continuous receive
+;bit 3 ADDEN: Address Detect Enable bit
+;   Asynchronous mode 9-bit (RX9 = 1):
+;	1 = Enables address detection, enables interrupt and loads the receive buffer when RSR<8> is set
+;	0 = Disables address detection, all bytes are received and ninth bit can be used as parity bit
+;   Asynchronous mode 9-bit (RX9 = 0):
+;	Don?t care.
+;bit 2 FERR: Framing Error bit
+;	1 = Framing error (can be updated by reading RCREG register and receiving next valid byte)
+;	0 = No framing error
+;bit 1 OERR: Overrun Error bit
+;	1 = Overrun error (can be cleared by clearing bit CREN)
+;	0 = No overrun error
+;bit 0 RX9D: 9th bit of Received Data
+;	This can be address/data bit or a parity bit and must be calculated by user firmware.    
+;    MOVLW B'00000000'   
+;    MOVWF RCSTA
+    
+;BAUDCON    
+;bit 7 ABDOVF: Auto-Baud Acquisition Rollover Status bit
+;	1 = A BRG rollover has occurred during Auto-Baud Rate Detect mode (must be cleared in software)
+;	0 = No BRG rollover has occurred
+;bit 6 RCIDL: Receive Operation Idle Status bit
+;	1 = Receive operation is Idle
+;	0 = Receive operation is active
+;bit 5 RXDTP: Received Data Polarity Select bit
+;   Asynchronous mode:
+;	1 = RX data is inverted
+;	0 = RX data received is not inverted
+;   Synchronous modes:
+;	1 = CK clocks are inverted
+;	0 = CK clocks are not inverted
+;bit 4 TXCKP: Clock and Data Polarity Select bit
+;   Asynchronous mode:
+;	1 = TX data is inverted
+;	0 = TX data is not inverted
+;   Synchronous modes:
+;	1 = CK clocks are inverted
+;	0 = CK clocks are not inverted
+;bit 3 BRG16: 16-Bit Baud Rate Register Enable bit
+;	1 = 16-bit Baud Rate Generator ? SPBRGH and SPBRG
+;	0 = 8-bit Baud Rate Generator ? SPBRG only (Compatible mode), SPBRGH value ignored
+;bit 2 Unimplemented: Read as ?0?
+;bit 1 WUE: Wake-up Enable bit
+;   Asynchronous mode:
+;	1 = EUSART will continue to sample the RX pin ? interrupt generated on falling edge; bit cleared in
+;	hardware on following rising edge
+;	0 = RX pin not monitored or rising edge detected
+;   Synchronous mode:
+;	Unused in this mode.
+;bit 0 ABDEN: Auto-Baud Detect Enable bit
+;   Asynchronous mode:
+;	1 = Enable baud rate measurement on the next character. Requires reception of a Sync field (55h);
+;   cleared in hardware upon completion.
+;	0 = Baud rate measurement disabled or completed
+   
+    BCF BAUDCON,BRG16
+    MOVLW .31
+    MOVWF SPBRG
+    
+;\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/    
+;5	CONFIGURACION DE PUERTOS
+;\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/     
+    movlw B'11111111'
+    movwf TRISA
+    movlw B'00000000'
+    movwf TRISB
+    movlw B'10111011'
+    movwf TRISC
+    
+;\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/    
+;6	INICIALIZACIÓN DE REGISTROS
+;\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/     
+    clrf VUELTA
+    clrf PORTA
+    clrf PORTB
+    clrf PORTC
+    
+    RETURN
