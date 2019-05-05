@@ -59,7 +59,7 @@ componentDidMount=()=>{
           </span>
         </h1>
         <h2 className="tituloGrafica">
-          Gráfica de Artritis{" "}</h2>
+          Gráfica de Movimiento Musculoesqueléticos{" "}</h2>
 
         <h2 className="test-label">{this.state.newTask}</h2>
         <Line data={this.state.myData} />
